@@ -27,8 +27,6 @@ func main() {
 	router.ServeFiles("/content/*filepath", http.Dir("public"))
 	router.GET("/api/list/:name", tagList)
 
-	fmt.Printf("Root - http://localhost:%d/\n", port)
-	fmt.Printf("e.g. - http://localhost:%d/api/list/test-data\n", port)
 	r := http.Handler(router)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), logger(r)))
 }
@@ -42,6 +40,7 @@ func logger(h http.Handler) http.Handler {
 func tagList(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	addHeaders(w, time.Hour)
 	if list, err := getNamesFromMongo(ps.ByName("name")); err == nil {
+		log.Printf("Found %s : %d\n", ps.ByName("name"), len(list))
 		ret, _ := json.Marshal(list)
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(ret)
@@ -67,7 +66,7 @@ func getNamesFromMongo(name string) ([]string, error) {
 		return nil, err
 	}
 	defer sess.Close()
-
+	log.Printf("Checking\nuse %d\ndb.%s.distinct('d.name')\n", db, name)
 	collection := sess.DB(db).C(name)
 
 	var result []string
@@ -86,4 +85,5 @@ func parseCmdLine() {
 		flag.Usage()
 		os.Exit(0)
 	}
+	fmt.Printf("Connecting to %s\nDb %s\nListening on http://localhost:%d/api/list/collection_name\n", conn, db, port)
 }
