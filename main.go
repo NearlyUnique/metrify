@@ -66,7 +66,7 @@ func getNamesFromMongo(name string) ([]string, error) {
 		return nil, err
 	}
 	defer sess.Close()
-	log.Printf("Checking\nuse %d\ndb.%s.distinct('d.name')\n", db, name)
+	log.Printf("Checking\nuse %s\ndb.%s.distinct('d.name')\n", db, name)
 	collection := sess.DB(db).C(name)
 
 	var result []string

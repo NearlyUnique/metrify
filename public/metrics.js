@@ -1,7 +1,11 @@
 (function() {
 	"use strict";
-	var chart, data = ['magic',50,50,50,50,50,50];
-	getNames("home_web_counts");
+	var chart,
+		//baseUrl = 'http://horizon.comparethemarket.com/cube',
+		baseUrl = 'http://localhost:1081',
+		data = ['magic',50,50,50,50,50,50];
+	//getNames("home_web_counts");
+	getNames("home_web_exceptions");
 	initChart();
 	var btn = document.getElementById('add');
 	btn.addEventListener("click", addLine, false);
@@ -44,11 +48,11 @@
 	        "00:00";
     }
     function buildUrl(metric_name, col) {
-        var baseUrl = 'http://horizon.comparethemarket.com/cube/1.0/metric?',
+        var metricUrl = baseUrl + '/1.0/metric?',
         exp = 'expression=sum(' + col + '.eq(name,"' + metric_name + '"))',
         dates = '&start=' + dtm({day:-1}) + '&stop=' + dtm(),
         step = '&step=3600000';
-        return baseUrl + exp + dates + step;
+        return metricUrl + exp + dates + step;
     }
 	function wireUp() {
 		var col = this.getAttribute('data-col');
