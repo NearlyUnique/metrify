@@ -10,17 +10,16 @@ import (
 	"time"
 
 	"github.com/julienschmidt/httprouter"
-	"gopkg.in/mgo.v2"
 )
 
 var (
-	conn string
-	db   string
 	port int
+	cube CubeDb
 )
 
 func main() {
-	parseCmdLine()
+	c, d := parseCmdLine()
+	cube = CreateCubeDb(c, d)
 
 	router := httprouter.New()
 	router.NotFound = http.FileServer(http.Dir("public")).ServeHTTP
@@ -37,9 +36,11 @@ func logger(h http.Handler) http.Handler {
 		h.ServeHTTP(w, r)
 	})
 }
+
 func tagList(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	addHeaders(w, time.Hour)
-	if list, err := getNamesFromMongo(ps.ByName("name")); err == nil {
+	name := ps.ByName("name")
+	if list, err := cube.DistinctItems(name); err == nil {
 		log.Printf("Found %s : %d\n", ps.ByName("name"), len(list))
 		ret, _ := json.Marshal(list)
 		w.Header().Set("Content-Type", "application/json")
@@ -59,22 +60,7 @@ func addHeaders(w http.ResponseWriter, expires time.Duration) {
 	head.Set("Expires", t.Add(expires).Format(time.RFC1123))
 }
 
-func getNamesFromMongo(name string) ([]string, error) {
-	sess, err := mgo.Dial(conn)
-	if err != nil {
-		log.Printf("Can't connect to mongo, go error %v\n", err)
-		return nil, err
-	}
-	defer sess.Close()
-	log.Printf("Checking\nuse %s\ndb.%s.distinct('d.name')\n", db, name)
-	collection := sess.DB(db).C(name)
-
-	var result []string
-	err = collection.Find(nil).Distinct("d.name", &result)
-	return result, err
-}
-
-func parseCmdLine() {
+func parseCmdLine() (conn, db string) {
 	flag.StringVar(&conn, "conn", "mongodb://localhost:27017", "MongoDb connection string")
 	flag.StringVar(&db, "db", "test-db", "MongoDb database name")
 	flag.IntVar(&port, "port", 8123, "Web server port")
@@ -84,6 +70,8 @@ func parseCmdLine() {
 	if *help {
 		flag.Usage()
 		os.Exit(0)
+		return "", ""
 	}
 	fmt.Printf("Connecting to %s\nDb %s\nListening on http://localhost:%d/api/list/collection_name\n", conn, db, port)
+	return conn, db
 }
