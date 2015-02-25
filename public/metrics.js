@@ -3,16 +3,22 @@
     var chart,
         data = [],
         baseUrl = 'http://localhost:1081';
-    getNames("home_web_counts");
+        getCollections();
     initChart();
 
-    function updateList(col, items) {
-        var tags = document.getElementById('tags'), el, list;
+    function updateUL(options) {
+        var tags = document.getElementById(options.element), el, list, i;
         if (tags) {
+            list = tags.getElementsByTagName('ul');
+            if (list) {
+                for(i = 0; i< list.length; i++) {
+                    tags.removeChild(list[i]);
+                }
+            }
             list = document.createElement('ul');
-            items.forEach(function(v) {
-                el = createClickableItem(v, v, wireUp);
-                el.setAttribute('data-collection', col);
+            options.items.forEach(function(v) {
+                el = createClickableItem(v, v, options.onClick);
+                el.setAttribute('data-collection', options.parent);
                 list.appendChild(el);
             });      
             tags.appendChild(list);
@@ -39,7 +45,7 @@
         step = '&step=3600000';
         return metricUrl + exp + dates + step;
     }
-    function wireUp() {
+    function addMetricToChart() {
         var collection = this.getAttribute('data-collection'),
             itemName = this.id;
         httpGet(
@@ -98,7 +104,30 @@
         httpGet(
             "/api/list/" + col + "_events", 
             function (data) {
-                updateList(col, JSON.parse(data));
+                updateUL({
+                    element: 'tags',
+                    parent: col,
+                    items: JSON.parse(data),
+                    onClick: addMetricToChart
+                });
+            },
+            function (d,s) {
+                console.log("Oh dear",d,s);
+            }
+        );
+    }
+    function getCollections() {
+        httpGet(
+            "/api/collections", 
+            function (data) {
+                updateUL({
+                    element: 'collections',
+                    parent: '',
+                    items: JSON.parse(data),
+                    onClick: function() {
+                        getNames(this.id);
+                    }
+                });
             },
             function (d,s) {
                 console.log("Oh dear",d,s);

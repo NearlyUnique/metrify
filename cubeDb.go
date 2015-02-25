@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"strings"
 
 	"gopkg.in/mgo.v2"
 )
@@ -64,6 +65,16 @@ func (cube *CubeDb) Collections() ([]string, error) {
 		return nil, cube.Error
 	}
 	defer cube.Close()
+	var all []string
 
-	return cube.db.CollectionNames()
+	if all, cube.Error = cube.db.CollectionNames(); cube.Error != nil {
+		return nil, cube.Error
+	}
+	all = Where(all, func(s string) bool {
+		return strings.HasSuffix(s, "_events")
+	})
+	Transform(all, func(s string) string {
+		return strings.TrimSuffix(s, "_events")
+	})
+	return all, nil
 }

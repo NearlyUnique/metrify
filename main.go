@@ -24,7 +24,8 @@ func main() {
 	router := httprouter.New()
 	router.NotFound = http.FileServer(http.Dir("public")).ServeHTTP
 	router.ServeFiles("/content/*filepath", http.Dir("public"))
-	router.GET("/api/list/:name", tagList)
+	router.GET("/api/list/:name", eventList)
+	router.GET("/api/collections/", collectionList)
 
 	r := http.Handler(router)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", port), logger(r)))
@@ -37,16 +38,30 @@ func logger(h http.Handler) http.Handler {
 	})
 }
 
-func tagList(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func eventList(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	addHeaders(w, time.Hour)
 	name := ps.ByName("name")
 	if list, err := cube.DistinctItems(name); err == nil {
-		log.Printf("Found %s : %d\n", ps.ByName("name"), len(list))
+		log.Printf("Found %s : %d\n", name, len(list))
 		ret, _ := json.Marshal(list)
 		w.Header().Set("Content-Type", "application/json")
 		w.Write(ret)
 	} else {
-		log.Printf("tagList Failed %s\n", err)
+		log.Printf("eventList Failed %s\n", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		fmt.Fprint(w, err)
+	}
+}
+
+func collectionList(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	addHeaders(w, time.Hour)
+	if list, err := cube.Collections(); err == nil {
+		log.Printf("Collections Found %d\n", len(list))
+		ret, _ := json.Marshal(list)
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(ret)
+	} else {
+		log.Printf("collectrionList Failed %s\n", err)
 		w.WriteHeader(http.StatusInternalServerError)
 		fmt.Fprint(w, err)
 	}
