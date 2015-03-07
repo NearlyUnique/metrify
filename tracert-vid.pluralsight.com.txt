@@ -1,0 +1,14 @@
+
+Tracing route to pluralsight.cachefly.net [205.234.175.175]
+over a maximum of 30 hops:
+
+  1     8 ms     8 ms     8 ms  10.27.136.1 
+  2    10 ms    11 ms    18 ms  cmbg-core-1a-ae2-1186.network.virginmedia.net [80.1.202.121] 
+  3    13 ms    17 ms    27 ms  popl-bb-1b-ae16-0.network.virginmedia.net [212.43.163.141] 
+  4     *        *        *     Request timed out.
+  5     *        *        *     Request timed out.
+  6   132 ms    60 ms    76 ms  nrth-bb-1b-ae0-0.network.virginmedia.net [62.254.42.130] 
+  7    19 ms    63 ms   135 ms  tele-ic-4-ae0-0.network.virginmedia.net [62.253.174.18] 
+  8   381 ms   385 ms   108 ms  vip1.G-anycast1.cachefly.net [205.234.175.175] 
+
+Trace complete.

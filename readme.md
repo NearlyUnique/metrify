@@ -1,3 +1,3 @@
 Metrify
 =======
-Display metrics from cube js data store
+Display metrics from cube js data store.
